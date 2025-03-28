@@ -120,6 +120,7 @@
 
 ## 源码运行
 
+[使用示例](./example/README.md)
 [详见开发者手册](./doc/开发者手册.md)
 
 [AI聊天](./MemoAI/readme.md)

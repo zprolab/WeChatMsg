@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-@Time        : 2025/3/11 18:17 
-@Author      : SiYuan 
-@Email       : 863909694@qq.com 
-@File        : WeChatMsg-1-decrypt.py 
-@Description : 
+@Time        : 2025/3/11 20:27
+@Author      : SiYuan
+@Email       : 863909694@qq.com
+@File        : wxManager-1-decrypt.py
+@Description :
 """
 
 import json
@@ -16,13 +16,12 @@ from multiprocessing import freeze_support
 from wxManager import Me
 from wxManager.decrypt import get_info_v4, get_info_v3
 from wxManager.decrypt.decrypt_dat import get_decode_code_v4
-from wxManager.decrypt.decrypt_v4 import decrypt_db_files
+from wxManager.decrypt import decrypt_v4, decrypt_v3
 
 if __name__ == '__main__':
     freeze_support()  # 使用多进程必须
 
-    # r_4 = get_info_v4()  # 微信4.0
-    r_4 = []
+    r_4 = get_info_v4()  # 微信4.0
     for wx_info in r_4:
         print(wx_info)
         me = Me()
@@ -34,7 +33,7 @@ if __name__ == '__main__':
         output_dir = wx_info.wxid
         key = wx_info.key
         wx_dir = wx_info.wx_dir
-        decrypt_db_files(key, src_dir=wx_dir, dest_dir=output_dir)
+        decrypt_v4.decrypt_db_files(key, src_dir=wx_dir, dest_dir=output_dir)
         with open(os.path.join(output_dir, 'db_storage', 'info.json'), 'w', encoding='utf-8') as f:
             json.dump(info_data, f, ensure_ascii=False, indent=4)
 
@@ -52,6 +51,6 @@ if __name__ == '__main__':
         output_dir = wx_info.wxid
         key = wx_info.key
         wx_dir = wx_info.wx_dir
-        # decrypt_db_files(key, src_dir=wx_dir, dest_dir=output_dir)
-        with open(os.path.join(output_dir, 'info.json'), 'w', encoding='utf-8') as f:
+        decrypt_v3.decrypt_db_files(key, src_dir=wx_dir, dest_dir=output_dir)
+        with open(os.path.join(output_dir, 'Msg', 'info.json'), 'w', encoding='utf-8') as f:
             json.dump(info_data, f, ensure_ascii=False, indent=4)
