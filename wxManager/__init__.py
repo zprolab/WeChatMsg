@@ -7,6 +7,7 @@
 @Version : Python3.10
 @comment : ···
 """
+from .log import logger
 from .model import Me, MessageType, Message, Person, Contact, TextMessage, ImageMessage
 from .db_main import DataBaseInterface
 from .manager_v4 import DataBaseV4
@@ -29,6 +30,7 @@ class DatabaseConnection:
         if database0.init_database(self.db_dir):
             return database0
         else:
+            logger.error(f'数据库初始化失败, 请检查路径或数据库版本是否正确, db_dir:{self.db_dir},db_version:{self.db_version}')
             return None
 
     def get_interface(self) -> DataBaseInterface:

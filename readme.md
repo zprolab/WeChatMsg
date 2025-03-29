@@ -45,6 +45,23 @@
 </div>
 </blockquote>
 
+## 3.0 全面来袭
+
+### 全面适配微信4.0 [点击查看详细设计文档](https://blog.lc044.love/post/13)
+
+![数据库架构设计图](./doc/images/数据库架构设计图.png)
+
+  * 全新框架、重构底层逻辑
+  * 更低的内存占用
+  * 更快的导出速度
+
+### 全新的Ui
+  * 更简洁
+  * 更流畅
+  * 更友好
+  * 前后端彻底分离
+
+
 ## 🍉功能
 - [![](https://img.shields.io/badge/MemoTrace-官网-blue)](https://memotrace.cn/) 
 [![](https://img.shields.io/badge/GitHub-black.svg)](https://github.com/LC044/WeChatMsg)
@@ -87,28 +104,6 @@
 ### 源码地址
 
 [https://github.com/LC044/AnnualReport](https://github.com/LC044/AnnualReport)
-
-## 3.0 全面来袭
-
-### 全面适配微信4.0
-
-![](https://blog.lc044.love/static/img/792544ecbbffc60703a1421b92bf9b6d.image.webp)
-
-  * 全新框架、重构底层逻辑
-  * 更低的内存占用
-  * 更快的导出速度
-
-### 全新的Ui
-  * 更简洁
-  * 更流畅
-  * 更友好
-  * 前后端彻底分离
-
-### 更宽松的许可证
-
-  - 如果跟其他模块兼容的话，将采用MIT许可证
-  - 已有功能代码全开源
-
 
 # ⌛使用
 
