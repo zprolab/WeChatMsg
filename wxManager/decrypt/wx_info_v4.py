@@ -483,7 +483,9 @@ def dump_wechat_info_v4(pid) -> WeChatInfo | None:
     # print(wx_dir_cnt)
     if not wechat_info.wx_dir:
         return wechat_info
-    db_file_path = os.path.join(wechat_info.wx_dir, 'biz', 'biz.db')
+    db_file_path = os.path.join(wechat_info.wx_dir, 'favorite', 'favorite_fts.db')
+    if not os.path.exists(db_file_path):
+        db_file_path = os.path.join(wechat_info.wx_dir, 'head_image', 'head_image.db')
     with open(db_file_path, 'rb') as f:
         buf = f.read()
     wechat_info.key = get_key(pid, process_handle, buf)
