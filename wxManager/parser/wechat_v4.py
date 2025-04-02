@@ -24,7 +24,8 @@ from wxManager.model.message import VoipMessage, BusinessCardMessage, MergedMess
 from wxManager.parser.link_parser import parser_link, parser_voip, parser_applet, parser_business, \
     parser_merged_messages, parser_wechat_video, parser_position, parser_reply, parser_transfer, parser_red_envelop, \
     parser_file, parser_favorite_note, parser_pat
-from wxManager.parser.util.protocbuf import packed_info_data_pb2, packed_info_data_merged_pb2,packed_info_data_img_pb2
+from wxManager.parser.util.protocbuf import packed_info_data_pb2, packed_info_data_merged_pb2, packed_info_data_img_pb2, \
+    packed_info_data_img2_pb2
 from .audio_parser import parser_audio
 from .emoji_parser import parser_emoji
 from .file_parser import parse_video
@@ -248,14 +249,27 @@ class ImageMessageFactory(MessageFactory, Singleton):
         is_sender, wxid, message_content = self.common_attribute(message, username, manager)
         filename = ''
         try:
-            # 2025年3月微信测试版修改了img命名方式才有了这个东西
-            packed_info_data_proto = packed_info_data_img_pb2.PackedInfoDataImg()
+            # 2025年3月微信4.0.3正式版修改了img命名方式才有了这个东西
+            packed_info_data_proto = packed_info_data_img2_pb2.PackedInfoDataImg2()
             packed_info_data_proto.ParseFromString(message[14])
             # 转换为 JSON 格式
             packed_info_data = MessageToDict(packed_info_data_proto)
-            filename = packed_info_data.get('filename', '').strip().strip('"').strip()
+            image_info = packed_info_data.get('imageInfo', {})
+            width = image_info.get('width',0)
+            height = image_info.get('height',0)
+            filename = image_info.get('filename', '').strip().strip('"').strip()
         except:
             pass
+        if not filename:
+            try:
+                # 2025年3月微信测试版修改了img命名方式才有了这个东西
+                packed_info_data_proto = packed_info_data_img_pb2.PackedInfoDataImg()
+                packed_info_data_proto.ParseFromString(message[14])
+                # 转换为 JSON 格式
+                packed_info_data = MessageToDict(packed_info_data_proto)
+                filename = packed_info_data.get('filename', '').strip().strip('"').strip()
+            except:
+                pass
         msg = ImageMessage(
             local_id=message[0],
             server_id=message[1],
@@ -277,8 +291,6 @@ class ImageMessageFactory(MessageFactory, Singleton):
             file_name=filename,
             file_type='png'
         )
-        # with open(f'{msg.str_time}{msg.server_id}.bin', 'wb') as f:
-        #     f.write(message[14])
         path = manager.get_image(content=message_content, bytesExtra=msg, up_dir='',
                                  thumb=False, talker_username=username)
         msg.path = path
@@ -300,6 +312,8 @@ class AudioMessageFactory(MessageFactory, Singleton):
             # 转换为 JSON 格式
             packed_info_data = MessageToDict(packed_info_data_proto)
             audio_text = packed_info_data.get('info', {}).get('audioTxt', '')
+        if not audio_text:
+            audio_text = manager.get_audio_text(message[1])
         msg = AudioMessage(
             local_id=message[0],
             server_id=message[1],
@@ -454,6 +468,7 @@ class LinkMessageFactory(MessageFactory, Singleton):
                     contact = manager.get_contact_by_username(source_username)
                     msg.app_name = contact.nickname
                     msg.app_icon = contact.small_head_img_url
+                    msg.app_id = source_username
 
         elif message[2] == MessageType.Applet or message[2] == MessageType.Applet2:
             info = parser_applet(message_content)
@@ -627,7 +642,8 @@ class MergedMessageFactory(MessageFactory, Singleton):
                         inner_msg.path = os.path.join('msg', 'attach',
                                                       wxid_md5,
                                                       month,
-                                                      'Rec', dir0, 'F', f"{level}{'_' if level else ''}{index}", inner_msg.file_name)
+                                                      'Rec', dir0, 'F', f"{level}{'_' if level else ''}{index}",
+                                                      inner_msg.file_name)
                     else:
                         inner_msg.path = manager.get_file(inner_msg.md5)
                 elif inner_msg.type == MessageType.MergedMessages:

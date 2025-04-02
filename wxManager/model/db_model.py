@@ -25,7 +25,7 @@ class DataBaseBase:
     def init_database(self, db_dir=''):
         self.db_dir = db_dir
         db_path = os.path.join(db_dir, self.db_file_name)
-        if not os.path.exists(db_path):
+        if not os.path.exists(db_path) and self.db_file_name != 'Audio2Text.db':
             return False
         db_file_name = self.db_file_name
         self.db_file_name = []
@@ -44,11 +44,10 @@ class DataBaseBase:
                     self.cursor.append(cursor)
                     self.open_flag = True
         else:
-            if os.path.exists(db_path):
-                self.DB = sqlite3.connect(db_path, check_same_thread=False)
-                # '''创建游标'''
-                self.cursor = self.DB.cursor()
-                self.open_flag = True
+            self.DB = sqlite3.connect(db_path, check_same_thread=False)
+            # '''创建游标'''
+            self.cursor = self.DB.cursor()
+            self.open_flag = True
         # print('初始化数据库完成：', db_path)
         self.self_init()
         return True

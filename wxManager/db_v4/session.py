@@ -42,10 +42,3 @@ order by sort_timestamp desc
         except:
             print(f"数据库操作错误: {traceback.format_exc()}")
             self.DB.rollback()
-
-
-if __name__ == '__main__':
-    cd = SessionDB('session/session.db')
-    cd.init_database(r'E:\Project\Python\MemoTrace\app\DataBase\Msg\wxid_27hqbq7vx5hf22\db_storage')
-    r = cd.get_session()
-    print(r)

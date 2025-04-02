@@ -277,7 +277,7 @@ class Msg(DataBaseBase):
             """
             increase_data(db_path, cursor, db, 'Name2Id', 'UsrName')
             increase_update_data(db_path, cursor, db, 'DBInfo', 'tableIndex')
-            increase_data(db_path, cursor, db, 'MSG', 'MsgSvrID', exclude_first_column=True)
+            increase_data(db_path, cursor, db, 'MSG', 'MsgSvrID', exclude_column='localId')
 
         tasks = []
         for i in range(100):

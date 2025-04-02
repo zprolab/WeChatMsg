@@ -14,16 +14,16 @@ import xmltodict
 def parser_audio(xml_content):
     result = {
         'audio_length': 0,
-        'audio_text':''
+        'audio_text': ''
     }
     xml_content = xml_content.strip()
     try:
         xml_dict = xmltodict.parse(xml_content)
         voice_length = xml_dict.get('msg', {}).get('voicemsg', {}).get('@voicelength', 0)
-        audio_text = xml_dict.get('msg',{}).get('voicetrans',{}).get('@transtext','')
+        audio_text = xml_dict.get('msg', {}).get('voicetrans', {}).get('@transtext', '')
         result = {
             'audio_length': voice_length,
-            'audio_text':audio_text
+            'audio_text': audio_text
         }
     except:
         if xml_content and ':' in xml_content:

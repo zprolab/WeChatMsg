@@ -292,6 +292,8 @@ class AudioMessageFactory(MessageFactory, Singleton):
         audio_dic = parser_audio(msg.xml_content)
         msg.duration = audio_dic.get('audio_length', 0)
         msg.audio_text = audio_dic.get('audio_text', '')
+        if not msg.audio_text:
+            msg.audio_text = manager.get_audio_text(msg.server_id)
         self.add_message(msg)
         return msg
 
@@ -439,6 +441,7 @@ class LinkMessageFactory(MessageFactory, Singleton):
                     contact = manager.get_contact_by_username(source_username)
                     msg.app_name = contact.nickname
                     msg.app_icon = contact.small_head_img_url
+                    msg.app_id = source_username
         elif (type_, sub_type) in {(49, 33), (49, 36)}:
             # 小程序
             msg.type = MessageType.Applet

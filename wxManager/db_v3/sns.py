@@ -196,15 +196,3 @@ class Sns:
 
     def __del__(self):
         self.close()
-
-
-if __name__ == '__main__':
-    db_path = "./Msg1/Sns.db"
-    sns_db = Sns()
-    sns_db.init_database()
-    print(sns_db.get_sns_bg_url())
-    feeds = sns_db.get_feeds_by_username('wxid_27hqbq7vx5hf22')
-    print(feeds)
-    for feed in feeds:
-        comment = sns_db.get_comment(feed[0])
-        print(comment)

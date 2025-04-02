@@ -36,6 +36,9 @@ def dump_v3():
         info_data = me.to_json()
         output_dir = wx_info.wxid
         key = wx_info.key
+        if not key:
+            print('error! 未找到key，请重启微信后再试')
+            continue
         wx_dir = wx_info.wx_dir
         decrypt_v3.decrypt_db_files(key, src_dir=wx_dir, dest_dir=output_dir)
         # 导出的数据库在 output_dir/Msg 文件夹下，后面会用到
@@ -59,6 +62,9 @@ def dump_v4():
         info_data = me.to_json()
         output_dir = wx_info.wxid  # 数据库输出文件夹
         key = wx_info.key
+        if not key:
+            print('error! 未找到key，请重启微信后再试')
+            continue
         wx_dir = wx_info.wx_dir
         decrypt_v4.decrypt_db_files(key, src_dir=wx_dir, dest_dir=output_dir)
         # 导出的数据库在 output_dir/db_storage 文件夹下，后面会用到

@@ -111,8 +111,7 @@ class OpenIMMsgDB(DataBaseBase):
 
     def get_messages_by_username(self, username: str,
                                  time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
-        result = self._get_messages_by_username(self.DB.cursor(), username, time_range)
-        return [result]
+        return self._get_messages_by_username(self.DB.cursor(), username, time_range)
 
     def get_message_by_server_id(self, username, server_id):
         """
@@ -141,7 +140,7 @@ class OpenIMMsgDB(DataBaseBase):
             return
         try:
             # 获取列名
-            increase_update_data(db_path, self.cursor, self.DB, 'ChatCRMsg', 'MsgSvrID', 1, exclude_first_column=True)
+            increase_data(db_path, self.cursor, self.DB, 'ChatCRMsg', 'MsgSvrID', 1, exclude_column='localId')
         except:
             print(f"数据库操作错误: {traceback.format_exc()}")
             self.DB.rollback()

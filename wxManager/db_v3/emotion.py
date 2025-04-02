@@ -126,10 +126,10 @@ class Emotion(DataBaseBase):
             cursor = self.DB.cursor()
             # 获取列名
             increase_data(db_path, cursor, self.DB, 'CustomEmotion', 'MD5', 0)
-            increase_data(db_path, cursor, self.DB, 'EmotionDes1', 'MD5', 1, True)
-            increase_data(db_path, cursor, self.DB, 'EmotionItem', 'MD5', 1, True)
-            increase_data(db_path, cursor, self.DB, 'EmotionPackageItem', 'ProductId', 0, False)
-            increase_data(db_path, cursor, self.DB, 'EmotionOrderInfo', 'MD5', 0, False)
+            increase_data(db_path, cursor, self.DB, 'EmotionDes1', 'MD5', 1, 'localId')
+            increase_data(db_path, cursor, self.DB, 'EmotionItem', 'MD5', 1, 'localId')
+            increase_data(db_path, cursor, self.DB, 'EmotionPackageItem', 'ProductId', 0, 'localId')
+            increase_data(db_path, cursor, self.DB, 'EmotionOrderInfo', 'MD5', 0, 'localId')
         except:
             print(f"数据库操作错误: {traceback.format_exc()}")
             self.DB.rollback()

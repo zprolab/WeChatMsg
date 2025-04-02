@@ -264,9 +264,9 @@ class HardLinkDB(DataBaseBase):
             return
         try:
             # 获取列名
-            increase_data(db_path, self.cursor, self.DB, 'file_hardlink_info_v3', 'md5')
-            increase_data(db_path, self.cursor, self.DB, 'image_hardlink_info_v3', 'md5')
-            increase_data(db_path, self.cursor, self.DB, 'video_hardlink_info_v3', 'md5')
+            increase_data(db_path, self.cursor, self.DB, 'file_hardlink_info_v3', 'md5', exclude_column='_rowid_')
+            increase_data(db_path, self.cursor, self.DB, 'image_hardlink_info_v3', 'md5', exclude_column='_rowid_')
+            increase_data(db_path, self.cursor, self.DB, 'video_hardlink_info_v3', 'md5', exclude_column='_rowid_')
             increase_data(db_path, self.cursor, self.DB, 'dir2id', 'username')
         except:
             print(f"数据库操作错误: {traceback.format_exc()}")

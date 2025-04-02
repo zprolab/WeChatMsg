@@ -10,6 +10,7 @@
 """
 import concurrent
 import os
+import re
 import traceback
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from datetime import date
@@ -19,6 +20,7 @@ import xmltodict
 
 from wxManager import MessageType
 from wxManager.db_main import DataBaseInterface
+from wxManager.db_v3.audio2text import Audio2TextDB
 from wxManager.db_v3.hard_link_file import HardLinkFile
 from wxManager.db_v3.hard_link_image import HardLinkImage
 from wxManager.db_v3.hard_link_video import HardLinkVideo
@@ -188,11 +190,7 @@ class DataBaseV3(DataBaseInterface):
         self.open_contact_db = OpenIMContactDB('OpenIMContact.db')
         self.open_media_db = OpenIMMediaDB('OpenIMMedia.db')
         self.open_msg_db = OpenIMMsgDB('OpenIMMsg.db')
-        # self.sns_db = Sns()
-
-        # self.audio_to_text = Audio2TextDB()
-        # self.public_msg_db = PublicMsg()
-        # self.favorite_db = Favorite()
+        self.audio2text_db = Audio2TextDB('Audio2Text.db')
 
     def init_database(self, db_dir=''):
         # print('初始化数据库', db_dir)
@@ -211,6 +209,8 @@ class DataBaseV3(DataBaseInterface):
         flag &= self.open_contact_db.init_database(db_dir)
         flag &= self.open_media_db.init_database(db_dir)
         flag &= self.open_msg_db.init_database(db_dir)
+        flag &= self.audio2text_db.init_database(db_dir)
+        self.audio2text_db.create()  # 初始化数据转文字数据库
         return flag
         # self.sns_db.init_database(db_dir)
 
@@ -231,9 +231,7 @@ class DataBaseV3(DataBaseInterface):
         self.open_contact_db.close()
         self.open_media_db.close()
         self.open_msg_db.close()
-        # self.sns_db.close()
-        # self.audio_to_text.close()
-        # self.public_msg_db.close()
+        self.audio2text_db.close()
 
     def get_session(self):
         """
@@ -446,8 +444,10 @@ class DataBaseV3(DataBaseInterface):
         return self.media_msg_db.get_audio_path(reserved0, output_path, filename)
 
     def get_audio_text(self, msgSvrId):
-        return ''
-        return self.media_msg_db.get_audio_text(msgSvrId)
+        return self.audio2text_db.get_audio_text(msgSvrId)
+
+    def add_audio_txt(self, msgSvrId, text):
+        return self.audio2text_db.add_text(msgSvrId, text)
 
     def update_audio_to_text(self):
         messages = self.get_messages_all()
@@ -491,10 +491,8 @@ class DataBaseV3(DataBaseInterface):
                 gender = '男'
             elif gender_code == 2:
                 gender = '女'
-
         type_ = contact_info_list[2]
         wxid = contact_info_list[0]
-
         contact = Contact(
             wxid=contact_info_list[0],
             remark=remark,
@@ -524,10 +522,10 @@ class DataBaseV3(DataBaseInterface):
             contact.type |= ContactType.Star
         if is_nth_bit_set(type_, 11):
             contact.type |= ContactType.Sticky
-
         if type_ == 10086:
             contact.type = ContactType.Unknown
             contact.is_unknown = True
+        contact.remark = re.sub(r'[\\/:*?"<>|\s\.\x00-\x08\x0B\x0C\x0E-\x1F]', '_', contact.remark)
         return contact
 
     def create_open_im_contact(self, contact_info_list) -> Person:
@@ -560,6 +558,7 @@ class DataBaseV3(DataBaseInterface):
         )
         contact.type = ContactType.Normal
         contact.type |= ContactType.OpenIM
+        contact.remark = re.sub(r'[\\/:*?"<>|\s\.\x00-\x08\x0B\x0C\x0E-\x1F]', '_', contact.remark)
         return contact
 
     def get_contacts(self) -> List[Person]:
@@ -660,8 +659,6 @@ class DataBaseV3(DataBaseInterface):
         return chatroom_name.rstrip('、')
 
     # 联系人结束
-    def add_audio_txt(self, msgSvrId, text):
-        return self.audio_to_text.add_text(msgSvrId, text)
 
     def get_favorite_items(self, time_range):
         return self.favorite_db.get_items(time_range)

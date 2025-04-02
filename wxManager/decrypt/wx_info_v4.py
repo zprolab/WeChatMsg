@@ -6,7 +6,7 @@
 @Author      : SiYuan
 @Email       : 863909694@qq.com
 @File        : wxManager-wx_info_v4.py
-@Description :
+@Description : 部分思路参考：https://github.com/0xlane/wechat-dump-rs
 """
 
 import ctypes
@@ -330,7 +330,7 @@ def get_key_inner(pid, process_infos):
     keys = []
     key_set = set()
     for pre_address in pre_addresses:
-        if any([base_address <= pre_address <= base_address + region_size - KEY_SIZE for base_address, region_size in
+        if True or any([base_address <= pre_address <= base_address + region_size - KEY_SIZE for base_address, region_size in
                 process_infos]):
             key = read_bytes_from_pid(pid, pre_address, 32)
             if key not in key_set:

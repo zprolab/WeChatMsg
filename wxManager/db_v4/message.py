@@ -12,6 +12,7 @@ import concurrent
 import hashlib
 import os
 import shutil
+import sqlite3
 import threading
 import traceback
 from concurrent.futures import ThreadPoolExecutor
@@ -281,14 +282,19 @@ order by sort_seq
             """
             increase_data(db_path, cursor, db, 'Name2Id', 'user_name')
             increase_update_data(db_path, cursor, db, 'TimeStamp', 'timestamp')
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            result = cursor.fetchall()
+            tgt_conn = sqlite3.connect(db_path)
+            tgt_cur = tgt_conn.cursor()
+            tgt_cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            result = tgt_cur.fetchall()
+            tgt_cur.close()
+            tgt_conn.close()
+
             # print(result)
             if result:
                 for row in result:
                     table_name = row[0]
                     if table_name.startswith('Msg'):
-                        increase_data(db_path, cursor, db, table_name, 'server_id', exclude_first_column=True)
+                        increase_data(db_path, cursor, db, table_name, 'server_id', exclude_column='local_id')
 
         tasks = []
         for i in range(100):

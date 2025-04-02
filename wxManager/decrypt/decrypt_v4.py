@@ -1,6 +1,8 @@
 import hmac
 import os
 import struct
+from concurrent.futures import ProcessPoolExecutor
+
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA512
@@ -101,6 +103,11 @@ def decrypt_db_file_v4(pkey, in_db_path, out_db_path):
     return True
 
 
+def decode_wrapper(tasks):
+    """用于包装解码函数的顶层定义"""
+    return decrypt_db_file_v4(*tasks)
+
+
 def decrypt_db_files(key, src_dir: str, dest_dir: str):
     if not os.path.exists(src_dir):
         print(f"源文件夹 {src_dir} 不存在")
@@ -108,7 +115,7 @@ def decrypt_db_files(key, src_dir: str, dest_dir: str):
 
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir)  # 如果目标文件夹不存在，创建它
-
+    decrypt_tasks = []
     for root, dirs, files in os.walk(src_dir):
         for file in files:
             if file.endswith(".db"):
@@ -124,4 +131,7 @@ def decrypt_db_files(key, src_dir: str, dest_dir: str):
                 if not os.path.exists(dest_sub_dir):
                     os.makedirs(dest_sub_dir)
                 print(dest_file_path)
-                decrypt_db_file_v4(key, src_file_path, dest_file_path)
+                decrypt_tasks.append((key, src_file_path, dest_file_path))
+                # decrypt_db_file_v4(key, src_file_path, dest_file_path)
+    with ProcessPoolExecutor(max_workers=16) as executor:
+        results = list(executor.map(decode_wrapper, decrypt_tasks))  # 使用顶层定义的函数

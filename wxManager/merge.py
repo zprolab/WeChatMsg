@@ -19,7 +19,7 @@ def get_create_statements(conn, table_name, object_type):
     return [row[0] for row in cursor.fetchall() if row[0]]  # 过滤掉 None 值
 
 
-def increase_data(db_path, src_cursor, src_conn, table_name, col_name, col_index=-1, exclude_first_column=False):
+def increase_data(db_path, src_cursor, src_conn, table_name, col_name, col_index=-1, exclude_column=''):
     """
     将db_path数据库的内容增量写入connect数据库中
     @param db_path: 新的数据库路径
@@ -28,7 +28,7 @@ def increase_data(db_path, src_cursor, src_conn, table_name, col_name, col_index
     @param table_name: 待写入的表名
     @param col_name: 根据该列进行判断是否是新增数据
     @param col_index: 待写入的列号
-    @param exclude_first_column: 是否不考虑低一列（针对第一列是自增ID的表）
+    @param exclude_column: 是否不考虑某一列（针对某一列是自增ID的表）
     @return:
     """
     if not (os.path.exists(db_path) or os.path.isfile(db_path)):
@@ -41,26 +41,30 @@ def increase_data(db_path, src_cursor, src_conn, table_name, col_name, col_index
     tgt_cur = tgt_conn.cursor()
 
     try:
-        if not table_exists(tgt_conn, table_name):
+        if not table_exists(src_conn, table_name):
             # 复制表结构
-            create_table_sql = get_create_statements(src_conn, table_name, "table")
+            create_table_sql = get_create_statements(tgt_conn, table_name, "table")
             if create_table_sql:
-                tgt_conn.execute(create_table_sql[0])  # 执行 CREATE TABLE 语句
+                src_conn.execute(create_table_sql[0])  # 执行 CREATE TABLE 语句
                 print(f"表 {table_name} 结构已复制")
 
             # 复制索引
-            create_index_sql_list = get_create_statements(src_conn, table_name, "index")
+            create_index_sql_list = get_create_statements(tgt_conn, table_name, "index")
             for create_index_sql in create_index_sql_list:
-                tgt_conn.execute(create_index_sql)  # 执行 CREATE INDEX 语句
+                src_conn.execute(create_index_sql)  # 执行 CREATE INDEX 语句
                 print(f"索引已复制: {create_index_sql}")
         # 获取列名
         src_cursor.execute(f"PRAGMA table_info({table_name})")
         columns_info = src_cursor.fetchall()
-        if columns_info and exclude_first_column:
-            columns_info = columns_info[1:]
         column_names = [info[1] for info in columns_info]
+        if columns_info and exclude_column:
+            try:
+                exclude_col_index = column_names.index(exclude_column)
+            except ValueError:
+                print(f"错误: 列 {exclude_column} 在表 {table_name} 中不存在")
+                return
+            column_names = column_names[:exclude_col_index]+column_names[exclude_col_index+1:]
         num_columns = len(column_names)
-
         if col_index == -1:
             try:
                 col_index = column_names.index(col_name)
@@ -69,7 +73,7 @@ def increase_data(db_path, src_cursor, src_conn, table_name, col_name, col_index
                 return
         # 从数据库B中选择主键不在数据库A中的行
         query = f"""
-           SELECT {', '.join([name for name in column_names])}
+           SELECT {', '.join(column_names)}
            FROM {table_name} 
         """
         tgt_cur.execute(query)
@@ -83,7 +87,6 @@ def increase_data(db_path, src_cursor, src_conn, table_name, col_name, col_index
 
         source_rows = {r[0] for r in source_rows}
         rows_to_insert = [row for row in target_rows if row[col_index] not in source_rows]
-
         if rows_to_insert:
             insert_query = f"""
                 INSERT INTO {table_name} ({', '.join(column_names)})
@@ -93,7 +96,8 @@ def increase_data(db_path, src_cursor, src_conn, table_name, col_name, col_index
             src_conn.commit()
             print(f"{len(rows_to_insert)} 行已插入到 {table_name} 表中")
         else:
-            print(f"没有需要插入的数据，{table_name} 表已是最新")
+            pass
+            # print(f"没有需要插入的数据，{table_name} 表已是最新")
     except sqlite3.Error as e:
         print(f"{db_path} 数据库操作错误: {e}")
     finally:
@@ -170,7 +174,8 @@ def increase_update_data(db_path, src_cur, src_conn, table_name, col_name, col_i
             src_conn.commit()
             print(f"{len(rows_to_insert)} 行已更新到 {table_name} 表中。")
         else:
-            print(f"没有需要插入的数据，{table_name} 表已是最新。")
+            pass
+            # print(f"没有需要插入的数据，{table_name} 表已是最新。")
     except sqlite3.Error as e:
         print(f"{db_path} 数据库操作错误: {e}")
     finally:

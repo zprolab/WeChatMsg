@@ -6,7 +6,7 @@
 @Author      : SiYuan
 @Email       : 863909694@qq.com
 @File        : wxManager-decrypt_dat.py
-@Description :
+@Description : 微信4.0图片加密原理解析：https://blog.lc044.love/post/16
 """
 import os
 import struct
@@ -25,6 +25,19 @@ pic_head = (0xff, 0xd8, 0x89, 0x50, 0x47, 0x49)
 # 解密码
 decode_code = 0
 decode_code_v4 = -1
+
+AES_KEY_MAP = {
+    b'\x07\x08V1\x08\x07': b'cfcd208495d565ef',  # 4.0第一代图片密钥
+    b'\x07\x08V2\x08\x07': b'43e7d25eb1b9bb64',  # 4.0第二代图片密钥，微信4.0.3正式版使用
+}
+
+
+def get_aes_key(header):
+    return AES_KEY_MAP.get(header[:6], b'')
+
+
+def is_v4_image(header):
+    return header[:6] in AES_KEY_MAP
 
 
 def get_code(dat_read):
@@ -68,14 +81,14 @@ def decode_dat(xor_key: int, file_path, out_path, dst_name='') -> str | bytes:
         return ''
     # print(file_path,out_path,dst_name)
     with open(file_path, 'rb') as file_in:
-        data = file_in.read(0xf)
-    if data.startswith(b'\x07\x08V1\x08\x07'):
+        header = file_in.read(0xf)
+    if is_v4_image(header):
         # 微信4.0
         return decode_dat_v4(xor_key, file_path, out_path, dst_name)
 
     with open(file_path, 'rb') as file_in:
-        data = file_in.read(2)
-        file_type, decode_code = get_code(data)
+        header = file_in.read(2)
+        file_type, decode_code = get_code(header)
         if decode_code == -1:
             return ''
 
@@ -96,12 +109,12 @@ def decode_dat(xor_key: int, file_path, out_path, dst_name='') -> str | bytes:
         # 分块读取和写入
         buffer_size = 1024  # 定义缓冲区大小
         with open(file_outpath, 'wb') as file_out:
-            file_out.write(bytes([byte ^ decode_code for byte in data]))
+            file_out.write(bytes([byte ^ decode_code for byte in header]))
             while True:
-                data = file_in.read(buffer_size)
-                if not data:
+                header = file_in.read(buffer_size)
+                if not header:
                     break
-                file_out.write(bytes([byte ^ decode_code for byte in data]))
+                file_out.write(bytes([byte ^ decode_code for byte in header]))
 
     # print(os.path.basename(file_outpath))
     return file_outpath
@@ -121,7 +134,7 @@ def get_decode_code_v4(wx_dir):
                 src_file_path = os.path.join(root, file)
                 with open(src_file_path, 'rb') as f:
                     data = f.read()
-                    if not data.startswith(b'\x07\x08V1\x08\x07'):
+                    if not is_v4_image(data):
                         continue
                     file_tail = data[-2:]
 
@@ -184,7 +197,7 @@ def decode_dat_v4(xor_key: int, file_path, out_path, dst_name='') -> str | bytes
         padding_length = 16 - (len(encrypted_data) % 16)
         encrypted_data += b'\x00' * padding_length
 
-    aes_key = b'cfcd208495d565ef'
+    aes_key = get_aes_key(header)
 
     # 初始化AES解密器（ECB模式）
     cipher = AES.new(aes_key, AES.MODE_ECB)
@@ -236,7 +249,7 @@ async def decode_dat_v4_async(xor_key: int, file_path, out_path, dst_name='') ->
         encrypted_data = await f.read(encrypt_length0)
         res_data = await f.read()
 
-    aes_key = b'cfcd208495d565ef'
+    aes_key = get_aes_key(header)
 
     # 初始化AES解密器（ECB模式）
     cipher = AES.new(aes_key, AES.MODE_ECB)
@@ -303,5 +316,5 @@ def batch_decode_image_multiprocessing(xor_key, file_infos: List[Tuple[str, str,
 if __name__ == '__main__':
     wx_dir = ''
     xor_key = get_decode_code_v4(wx_dir)
-    dat_file = "2_1730948126.dat"
+    dat_file = "1c5d8c0cf05d97869b0bc9fe16a8e3c2.dat"
     decode_dat_v4(xor_key, dat_file, '.', dst_name='解密后的图片')

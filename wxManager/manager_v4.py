@@ -10,6 +10,7 @@
 """
 import concurrent
 import os
+import re
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 from datetime import date, datetime
 from multiprocessing import Pool, cpu_count
@@ -18,6 +19,7 @@ from typing import Tuple, List, Any
 import zstandard as zstd
 
 from wxManager import MessageType
+from wxManager.db_v4.audio2text import Audio2TextDB
 from wxManager.db_v4.biz_message import BizMessageDB
 from wxManager.db_v4.emotion import EmotionDB
 from wxManager.db_v4.media import MediaDB
@@ -82,6 +84,7 @@ class DataBaseV4(DataBaseInterface):
         self.media_db = MediaDB('message/media_0.db', is_series=True)
         self.hardlink_db = HardLinkDB('hardlink/hardlink.db')
         self.emotion_db = EmotionDB('emoticon/emoticon.db')
+        self.audio2text_db = Audio2TextDB('Audio2Text.db')
 
     def init_database(self, db_dir=''):
         Me().load_from_json(os.path.join(db_dir, 'info.json'))  # 加载自己的信息
@@ -96,6 +99,8 @@ class DataBaseV4(DataBaseInterface):
         flag &= self.media_db.init_database(db_dir)
         flag &= self.hardlink_db.init_database(db_dir)
         flag &= self.emotion_db.init_database(db_dir)
+        flag &= self.audio2text_db.init_database(db_dir)
+        self.audio2text_db.create()  # 初始化数据转文字数据库
         return flag
 
     def close(self):
@@ -271,12 +276,15 @@ class DataBaseV4(DataBaseInterface):
     def get_audio_path(self, reserved0, output_path, filename=''):
         return self.media_db.get_audio_path(reserved0, output_path, filename)
 
-    def get_audio_text(self, msgSvrId):
-        return ''
+    def get_audio_text(self, server_id):
+        return self.audio2text_db.get_audio_text(server_id)
 
     def update_audio_to_text(self):
         # todo
         return
+
+    def add_audio_txt(self, server_id, text):
+        return self.audio2text_db.add_text(server_id, text)
 
     # 语音结束
 
@@ -353,10 +361,10 @@ class DataBaseV4(DataBaseInterface):
             contact.type |= ContactType.Star
         if is_nth_bit_set(flag, 11):
             contact.type |= ContactType.Sticky
-
         if local_type == 10086:
             contact.type = ContactType.Unknown
             contact.is_unknown = True
+        contact.remark = re.sub(r'[\\/:*?"<>|\s\.\x00-\x08\x0B\x0C\x0E-\x1F]', '_', contact.remark)
         return contact
 
     def get_contacts(self) -> List[Person]:
@@ -436,9 +444,6 @@ class DataBaseV4(DataBaseInterface):
         return chatroom_name.rstrip('、')
 
     # 联系人结束
-
-    def add_audio_txt(self, msgSvrId, text):
-        return self.audio_to_text.add_text(msgSvrId, text)
 
     def get_favorite_items(self, time_range):
         return self.favorite_db.get_items(time_range)
