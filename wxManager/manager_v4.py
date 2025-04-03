@@ -96,11 +96,12 @@ class DataBaseV4(DataBaseInterface):
         flag &= self.session_db.init_database(db_dir)
         flag &= self.message_db.init_database(db_dir)
         flag &= self.biz_message_db.init_database(db_dir)
-        flag &= self.media_db.init_database(db_dir)
+        self.media_db.init_database(db_dir)
         flag &= self.hardlink_db.init_database(db_dir)
         flag &= self.emotion_db.init_database(db_dir)
         flag &= self.audio2text_db.init_database(db_dir)
-        self.audio2text_db.create()  # 初始化数据转文字数据库
+        if flag:
+            self.audio2text_db.create()  # 初始化语音转文字数据库
         return flag
 
     def close(self):

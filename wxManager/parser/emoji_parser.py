@@ -57,6 +57,7 @@ def parser_emoji(xml_content):
         }
     except:
         logger.error(traceback.format_exc())
+        logger.error(xml_content)
     finally:
         return result
 

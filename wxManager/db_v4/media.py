@@ -9,6 +9,7 @@
 @Description : 
 """
 import os
+import shutil
 import subprocess
 import sys
 import traceback
@@ -35,6 +36,8 @@ class MediaDB(DataBaseBase):
         from VoiceInfo
         where svr_id = ?
         '''
+        if not self.DB:
+            return b''
         for db in self.DB:
             cursor = db.cursor()
             cursor.execute(sql, [server_id])
@@ -100,16 +103,19 @@ class MediaDB(DataBaseBase):
         if not (os.path.exists(db_path) or os.path.isfile(db_path)):
             print(f'{db_path} 不存在')
             return
-        for db in self.DB:
-            cursor = db.cursor()
-            try:
-                # 获取列名
-                increase_data(db_path, cursor, db, 'VoiceInfo', 'svr_id')
-                increase_data(db_path, cursor, db, 'Name2Id', 'user_name')
-                increase_update_data(db_path, cursor, db, 'Timestamp', 'timestamp')
-            except:
-                print(f"数据库操作错误: {traceback.format_exc()}")
-                db.rollback()
+        if not self.DB:
+            shutil.copy(db_path,os.path.join(self.db_dir,self.db_file_name))
+        else:
+            for db in self.DB:
+                cursor = db.cursor()
+                try:
+                    # 获取列名
+                    increase_data(db_path, cursor, db, 'VoiceInfo', 'svr_id')
+                    increase_data(db_path, cursor, db, 'Name2Id', 'user_name')
+                    increase_update_data(db_path, cursor, db, 'Timestamp', 'timestamp')
+                except:
+                    print(f"数据库操作错误: {traceback.format_exc()}")
+                    db.rollback()
 
 
 if __name__ == '__main__':

@@ -309,7 +309,7 @@ order by sort_seq
                     task_(db_path, cursor, db)
                     tasks.append([db_path, cursor, db])
                 else:
-                    shutil.copy(db_path, os.path.join(self.db_dir, 'Multi', file_name))
+                    shutil.copy(db_path, os.path.join(self.db_dir, 'message', file_name))
         # print(tasks)
         # 使用线程池 (没有加快合并速度)
         # with ThreadPoolExecutor(max_workers=len(tasks)) as executor:

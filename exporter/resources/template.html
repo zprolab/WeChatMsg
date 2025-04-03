@@ -4242,12 +4242,12 @@
                 personal_card.appendChild(card_bottom);
                 return personal_card;
             }
-            function openIMCard(message) {
+            function OpenIMCard(message) {
                 const OpenIM_card = document.createElement("div");
                 OpenIM_card.className = "OpenIM-card";
                 const contner = document.createElement("div");
                 contner.className = "contner";
-                contner.innerHTML = `<img src="${message.smallheadimgurl}" alt="headimg">`
+                contner.innerHTML = `<img src="${message.small_head_url}" alt="headimg">`
                 const contner_text = document.createElement("div");
                 contner_text.className = "text";
                 if (message.sex == '男') {
@@ -4260,7 +4260,7 @@
                     contner_text.innerHTML = `<div class="nickname">
                     ${message.nickname}</div>`
                 }
-                contner_text.innerHTML += `<div class="desc"><img src="${message.open_im_desc_icon}">${message.open_im_desc}</div>`
+                contner_text.innerHTML += `<div class="desc"><img src="${message.open_im_desc_icon}">${message.open_im_desc_icon}</div>`
                 contner.appendChild(contner_text);
                 OpenIM_card.appendChild(contner);
                 const card_bottom = document.createElement("div");
@@ -4391,6 +4391,330 @@
                 return messageMergeModaltitle;
             }
 
+            function messageMiniProgram(message) {
+                const message_MiniProgram = document.createElement('div');
+                message_MiniProgram.className = `mini-program`;
+
+                message_MiniProgram.innerHTML = `<a href="${message.url}" target="_blank">
+                        <div class="top">
+                            <img src='${message.app_logo}' alt='logo'>
+                            <div class='text'>${message.app_name}</div>
+                        </div>
+                        <div class="title">${message.title}</div>
+                        <div class="cover"><img src='${message.cover_url}'  onerror="this.style.display='none';"></div>
+                        <div class="bottom"><div class="text">小程序</div></div>
+                    </a>`;
+                return message_MiniProgram;
+            }
+
+            function messageVideoNumber(message) {
+                const message_VideoNumber = document.createElement('div');
+                message_VideoNumber.className = `video-number`;
+                const message_VideoNumber_title = document.createElement('div');
+                message_VideoNumber_title.className = `title`;
+                const message_VideoNumber_container = document.createElement('div');
+                message_VideoNumber_container.className = `container`;
+                message_VideoNumber_container.style.backgroundImage = `url(${message.cover_url})`;
+                message_VideoNumber_container.style.backgroundSize = "cover";
+                message_VideoNumber_container.style.backgroundRepeat = "no-repeat";
+                message_VideoNumber_title.innerHTML = replaceEmoji(message.title);
+                message_VideoNumber_container.innerHTML = `
+                <div class="bottom">
+                    <div class="author">
+                        <div class="logo"><img src='${message.publisher_avatar}'  onerror="this.style.display='none';"></div>
+                        <div class="name">${message.publisher_nickname}</div>
+                        <div class="authIcon"><img src='${message.authIconUrl}' onerror="this.style.display='none';"></div>
+                    </div>
+                </div>`;
+
+                message_VideoNumber.appendChild(message_VideoNumber_title);
+                message_VideoNumber.appendChild(message_VideoNumber_container);
+
+                return message_VideoNumber;
+            }
+
+            function handleTextMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag, record, recordItem } = params;
+
+                if (record) {
+                    recordItem.innerHTML += `<div class="msg-container">${record.text}</div>`;
+                } else {
+                    messageContent.className = `content-wrapper content-wrapper-${side}`;
+                    messageContent.appendChild(messageBubble(message, side));
+                    messageElement.className = `item item-${side}`;
+                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+                }
+
+            }
+            function handleSystemMessage(params) {
+                const { message, messageElement } = params;
+                messageElement.className = "item item-center";
+                messageElement.innerHTML = `<span class="system-msg">${replaceEmoji(message.text.replace('\\"', '"'))}</span>`;
+            }
+            function handelAudioMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag, record, recordItem } = params;
+
+                if (record) {
+                    recordItem.innerHTML += `<div class="msg-container">${record.text}</div>`;
+                } else {
+                    messageContent.className = `content-wrapper content-wrapper-${side}`;
+                    messageContent.appendChild(messageAudioBox(message));
+                    if (message.voice_to_text) {
+                        messageContent.appendChild(messageVoiceToTextBubble(message, side));
+                    }
+                    messageElement.className = `item item-${side}`;
+                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+                }
+            }
+            function handleImageOrEmojiMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag, record, recordItem } = params;
+
+                if (record) {
+                    recordItem.appendChild(messageImgBox(record));
+                } else {
+                    messageContent.className = `content-wrapper content-wrapper-${side}`;
+                    messageContent.appendChild(messageImgBox(message));
+                    messageElement.className = `item item-${side}`;
+                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+                }
+            }
+
+            function handleVideoMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag, record, recordItem } = params;
+
+                if (record) {
+                    recordItem.appendChild(messageVideoBox(record));
+                } else {
+                    messageContent.className = `content-wrapper content-wrapper-${side}`;
+                    messageContent.appendChild(messageVideoBox(message));
+                    messageElement.className = `item item-${side}`;
+                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+                }
+            }
+
+            function handleFileMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag, record, recordItem } = params;
+                if (record) {
+                    record.icon_path = getFileIcon(record.datafmt)
+                    recordItem.appendChild(messageFileBox(record));
+                }
+                else {
+                    messageContent.className = `content-wrapper content-wrapper-${side}`;
+                    messageContent.appendChild(messageFileBox(message));
+                    messageElement.className = `item item-${side}`;
+                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+                }
+            }
+
+            function handleTransferMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag } = params;
+                messageContent.className = `content-wrapper content-wrapper-${side}`;
+                messageContent.appendChild(messageTransfer(message));
+                // 整合
+                messageElement.className = `item item-${side}`;
+                messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+            }
+
+            function handleLinkMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag, record, recordItem } = params;
+                if (record) {
+                    recordItem.appendChild(messageCard(record));
+                }
+                else {
+                    messageContent.className = `content-wrapper content-wrapper-${side}`;
+                    messageContent.appendChild(messageCard(message));
+                    // 整合
+                    messageElement.className = `item item-${side}`;
+                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+                }
+            }
+
+            function handleMusicMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag } = params;
+                messageContent.className = `content-wrapper content-wrapper-${side}`;
+                messageContent.appendChild(messageMusicAudioBox(message));
+                // 整合
+                messageElement.className = `item item-${side}`;
+                messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+            }
+
+            function handleAppletMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag } = params;
+                messageContent.className = `content-wrapper content-wrapper-${side}`;
+                messageContent.appendChild(messageMiniProgram(message));
+                messageElement.className = `item item-${side}`;
+                messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+            }
+
+            function handleMergedMessages(params) {
+                const { message, side, messageContent, messageElement, avatarTag, mergemessageElement, record, recordItem, zindex, i, parent_server_id} = params;
+                if (record) {
+                    recordItem.appendChild(innermessageMergeCard(record, zindex + 1, i, parent_server_id));
+                    messageContent.insertBefore(messageMergeModal(record, messageContent, zindex + 1, i, parent_server_id), messageContent.firstChild);
+                }
+                else {
+                    messageContent.className = `content-wrapper content-wrapper-${side}`;
+
+                    messageContent.appendChild(messageMergeCard(message));
+                    messageContent.insertBefore(messageMergeModal(message, messageContent, 1), messageContent.firstChild);
+                    messageElement.className = `item item-${side}`;
+                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+                }
+            }
+
+            function handleQuoteMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag } = params;
+                messageContent.className = `content-wrapper content-wrapper-${side}`;
+                messageContent.appendChild(messageBubble(message));
+                if (message.quote_text) {
+                    messageContent.appendChild(messageElementReferText(message, side));
+                }
+                messageElement.className = `item item-${side}`;
+                messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+            }
+
+            function handleWeChatVideo(params) {
+                const { message, side, messageContent, messageElement, avatarTag } = params;
+                messageContent.className = `content-wrapper content-wrapper-${side}`;
+                messageContent.appendChild(messageVideoNumber(message));
+                messageElement.className = `item item-${side}`;
+                messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+            }
+
+            function handleVideoAudioCall(params) {
+                const { message, side, messageContent, messageElement, avatarTag } = params;
+                messageContent.className = `content-wrapper content-wrapper-${side}`;
+                messageContent.appendChild(messageVideoAudioCall(message));
+                messageElement.className = `item item-${side}`;
+                messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+            }
+
+            function handlePersonalCard(params) {
+                const { message, side, messageContent, messageElement, avatarTag } = params;
+                messageContent.className = `content-wrapper content-wrapper-${side}`;
+                if (message.is_open_im) {
+                    messageContent.appendChild(OpenIMCard(message));
+                }
+                else {
+                    messageContent.appendChild(personalCard(message));
+                }
+                messageElement.className = `item item-${side}`;
+                messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+            }
+
+            function handleLocationMessage(params) {
+                const { message, side, messageContent, messageElement, avatarTag, record, recordItem } = params;
+                if (record) {
+                    recordItem.appendChild(messageLocation(record, MapID));
+                }
+                else {
+                    messageContent.className = `content-wrapper content-wrapper-${side}`;
+                    messageContent.appendChild(messageLocation(message, MapID));
+                    messageElement.className = `item item-${side}`;
+                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+                }
+            }
+
+            function handleOpenIMCard(params) {
+                const { message, side, messageContent, messageElement, avatarTag } = params;
+                messageContent.className = `content-wrapper content-wrapper-${side}`;
+                messageContent.appendChild(OpenIMCard(message));
+                messageElement.className = `item item-${side}`;
+                messageElement.appendChild(message.is_send ? messageContent : avatarTag);
+                messageElement.appendChild(message.is_send ? avatarTag : messageContent);
+            }
+
+            function handleUnkownMessage(params) {
+                const { message } = params;
+                console.log("UnkownMessage: ", message);
+            }
+
+            const messageHandlers = {
+                [MessageType.Text]: handleTextMessage,
+                [MessageType.System]: handleSystemMessage,
+                [MessageType.Audio]: handelAudioMessage,
+                [MessageType.Image]: handleImageOrEmojiMessage,
+                [MessageType.Emoji]: handleImageOrEmojiMessage,
+                [MessageType.Video]: handleVideoMessage,
+                [MessageType.File]: handleFileMessage,
+                [MessageType.Transfer]: handleTransferMessage,
+                [MessageType.LinkMessage]: handleLinkMessage,
+                [MessageType.LinkMessage2]: handleLinkMessage,
+                [MessageType.LinkMessage3]: handleLinkMessage,
+                [MessageType.LinkMessage4]: handleLinkMessage,
+                [MessageType.LinkMessage5]: handleLinkMessage,
+                [MessageType.LinkMessage6]: handleLinkMessage,
+                [MessageType.Music]: handleMusicMessage,
+                [MessageType.Applet]: handleAppletMessage,
+                [MessageType.Applet2]: handleAppletMessage,
+                [MessageType.MergedMessages]: handleMergedMessages,
+                [MessageType.Quote]: handleQuoteMessage,
+                [MessageType.WeChatVideo]: handleWeChatVideo,
+                [MessageType.Voip]: handleVideoAudioCall,
+                [MessageType.BusinessCard]: handlePersonalCard,
+                [MessageType.Position]: handleLocationMessage,
+                [MessageType.OpenIMBCard]: handleOpenIMCard,
+                [MessageType.Unknown]: handleUnkownMessage,
+
+            };
+
+            function processMessage(params) {
+                const { message, record } = params;
+                if (message){
+                    const handler = messageHandlers[message.type] || handleUnkownMessage;
+                    if (handler && is_valid_data(message.server_id, message.token)) {
+                        handler(params); // 将参数对象传递给处理函数
+                    } else {
+                        console.log("Unsupported message type or invalid data");
+                        console.log("message",message);
+                    }
+                }
+                else {
+                    const handler = messageHandlers[record.type] || handleUnkownMessage;
+                    if (handler) {
+                        handler(params); // 将参数对象传递给处理函数
+                    } else {
+                        console.log("Unsupported message type or invalid data");
+                        console.log("record",record);
+                    }
+                }
+
+            }
+
+            function getFileIcon(datafmt) {
+                icon_files = {
+                    'DOCX': ['doc', 'docx'],
+                    'XLS': ['xls', 'xlsx'],
+                    'CSV': ['csv'],
+                    'TXT': ['txt'],
+                    'ZIP': ['zip', '7z', 'rar'],
+                    'PPT': ['ppt', 'pptx'],
+                    'PDF': ['pdf'],
+                }
+
+                for (var key in icon_files) {
+                    if (icon_files[key].includes(datafmt)) {
+                        return key
+                    }
+                }
+                return 'Default'
+            }
+
             function messageMergeModal(message, messageContent, zindex, index=0, parent_server_id=0) {
                 var message_MergeModal = document.createElement('div');
                 message_MergeModal.className = `merge-msg-modal`;
@@ -4399,11 +4723,6 @@
                     parent_server_id = message.server_id;
                 }
                 message_MergeModal.id = `${parent_server_id}-${zindex}-${index}Modal`;
-                // if (message.server_id) {
-                //     message_MergeModal.id = `${message.server_id}-${zindex}-${index}Modal`;
-                // } else {
-                //     message_MergeModal.id = `${message.dataid}Modal`;
-                // }
 
                 var ModalContent = document.createElement('div');
                 ModalContent.className = `merge-msg-modal-content`;
@@ -4460,48 +4779,11 @@
                     }
                     const recordItem = document.createElement('div');
                     recordItem.className = `msg-block`;
-                    // console.log("type:",record.type);
-                    if (record.type == MessageType.Text || record.type == MessageType.Audio) {
-                        // console.log(record.datadesc)
-                        // 文本消息
-                        recordItem.innerHTML = `<div class="msg-container-top"><span>${record.display_name}</span>
-                        <span style="font-size: 12px;">${timestampToTime(record.timestamp)}</span></div>
-                        <div class="msg-container">${record.text}</div>`;
-                    } else if (record.type == MessageType.MergedMessages) {
-                        // 嵌套合并消息
-                        recordItem.innerHTML = `<div class="msg-container-top"><span>${record.display_name}</span>
+                    recordItem.innerHTML = `<div class="msg-container-top"><span>${record.display_name}</span>
                         <span style="font-size: 12px;">${timestampToTime(record.timestamp)}</span></div>`;
-                        recordItem.appendChild(innermessageMergeCard(record, zindex + 1, i, parent_server_id));
-                        // messageContent.appendChild(messageMergeModal(record, messageContent));
-                        messageContent.insertBefore(messageMergeModal(record, messageContent, zindex + 1, i, parent_server_id), messageContent.firstChild);
-                    } else if (record.type == MessageType.Video) {
-                        // 视频消息
-                        recordItem.innerHTML = `<div class="msg-container-top"><span>${record.display_name}</span>
-                        <span style="font-size: 12px;">${timestampToTime(record.timestamp)}</span></div>
-                        <div class="msg-container"><video src="${record.path}" controls=""></video></div>`;
-                    } else if (record.type == MessageType.Image || record.type == MessageType.Emoji) {
-                        // 文件消息
-                        recordItem.innerHTML = `<div class="msg-container-top"><span>${record.display_name}</span>
-                        <span style="font-size: 12px;">${timestampToTime(record.timestamp)}</span></div>`;
-                        recordItem.appendChild(messageImgBox(record));
 
-                    } else if (record.type == MessageType.File) {
-                        // 文件消息
-                        record.icon_path = getFileIcon(record.datafmt)
-                        recordItem.innerHTML = `<div class="msg-container-top"><span>${record.display_name}</span>
-                        <span style="font-size: 12px;">${timestampToTime(record.timestamp)}</span></div>`;
-                        recordItem.appendChild(messageFileBox(record));
-                    } else if (record.type == MessageType.Position) {
-                        // 文件消息
-                        recordItem.innerHTML = `<div class="msg-container-top"><span>${record.display_name}</span>
-                        <span style="font-size: 12px;">${timestampToTime(record.timestamp)}</span></div>`;
-                        recordItem.appendChild(messageLocation(record, newMapID));
-                    } else if (record.type == MessageType.LinkMessage) {
-                        // 文件消息
-                        recordItem.innerHTML = `<div class="msg-container-top"><span>${record.display_name}</span>
-                        <span style="font-size: 12px;">${timestampToTime(record.timestamp)}</span></div>`;
-                        recordItem.appendChild(messageCard(record));
-                    }
+                    const record_params = {record, recordItem, messageContent, zindex, i, parent_server_id};
+                    processMessage(record_params);
                     OnePersonMsgRight.appendChild(recordItem);
                 }
 
@@ -4510,70 +4792,10 @@
                 ModalContent.appendChild(ModalContainer);
                 message_MergeModal.appendChild(ModalContent);
 
-                function getFileIcon(datafmt) {
-                    icon_files = {
-                        'DOCX': ['doc', 'docx'],
-                        'XLS': ['xls', 'xlsx'],
-                        'CSV': ['csv'],
-                        'TXT': ['txt'],
-                        'ZIP': ['zip', '7z', 'rar'],
-                        'PPT': ['ppt', 'pptx'],
-                        'PDF': ['pdf'],
-                    }
-
-                    for (var key in icon_files) {
-                        if (icon_files[key].includes(datafmt)) {
-                            return key
-                        }
-                    }
-                    return 'Default'
-                }
-
                 return message_MergeModal;
 
             }
 
-            function messageMiniProgram(message) {
-                const message_MiniProgram = document.createElement('div');
-                message_MiniProgram.className = `mini-program`;
-
-                message_MiniProgram.innerHTML = `<a href="${message.url}" target="_blank">
-                        <div class="top">
-                            <img src='${message.app_logo}' alt='logo'>
-                            <div class='text'>${message.app_name}</div>
-                        </div>
-                        <div class="title">${message.title}</div>
-                        <div class="cover"><img src='${message.cover_url}'  onerror="this.style.display='none';"></div>
-                        <div class="bottom"><div class="text">小程序</div></div>
-                    </a>`;
-                return message_MiniProgram;
-            }
-
-            function messageVideoNumber(message) {
-                const message_VideoNumber = document.createElement('div');
-                message_VideoNumber.className = `video-number`;
-                const message_VideoNumber_title = document.createElement('div');
-                message_VideoNumber_title.className = `title`;
-                const message_VideoNumber_container = document.createElement('div');
-                message_VideoNumber_container.className = `container`;
-                message_VideoNumber_container.style.backgroundImage = `url(${message.cover_url})`;
-                message_VideoNumber_container.style.backgroundSize = "cover";
-                message_VideoNumber_container.style.backgroundRepeat = "no-repeat";
-                message_VideoNumber_title.innerHTML = replaceEmoji(message.title);
-                message_VideoNumber_container.innerHTML = `
-                <div class="bottom">
-                    <div class="author">
-                        <div class="logo"><img src='${message.publisher_avatar}'  onerror="this.style.display='none';"></div>
-                        <div class="name">${message.publisher_nickname}</div>
-                        <div class="authIcon"><img src='${message.authIconUrl}' onerror="this.style.display='none';"></div>
-                    </div>
-                </div>`;
-
-                message_VideoNumber.appendChild(message_VideoNumber_title);
-                message_VideoNumber.appendChild(message_VideoNumber_container);
-
-                return message_VideoNumber;
-            }
 
             // 从数据列表中取出对应范围的元素并添加到容器中
             for (let i = startIndex; i < endIndex && i < ChatMsgIndex.length; i++) {
@@ -4589,242 +4811,15 @@
                 if (isChatroom && !message.is_send) {
                         messageContent.appendChild(displayNameBox(message));
                     }
-                if (message.type == MessageType.Text && is_valid_data(message.server_id, message.token)) {
-                    // displayname 和 bubble
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    messageContent.appendChild(messageBubble(message, side));
 
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.System) {
-                    messageElement.className = "item item-center";
-                    messageElement.innerHTML = `<span class="system-msg">${replaceEmoji(message.text.replace('\\"', '"'))}</span>`;
-                } else if ((message.type == MessageType.Image || message.type == MessageType.Emoji)&& is_valid_data(message.server_id, message.token)) {
-                    // displayname 和 img
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    
-                    messageContent.appendChild(messageImgBox(message));
-
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.Video && is_valid_data(message.server_id, message.token)) {
-                    // displayname 和 video
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    
-                    messageContent.appendChild(messageVideoBox(message));
-
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.File) {
-                    console.log('file');
-                    // displayname 和 file
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    messageContent.appendChild(messageFileBox(message));
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.Transfer) {
-                    console.log('Transfer');
-                    // displayname 和 file
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                    messageContent.appendChild(messageTransfer(message));
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.LinkMessage) {
-                    console.log('LinkMessage');
-                    // displayname 和 file
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                    messageContent.appendChild(messageCard(message));
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.Music) {
-                    console.log('LinkMessage');
-                    // displayname 和 file
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                    messageContent.appendChild(messageMusicAudioBox(message));
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.Applet) {
-                    console.log('LinkMessage');
-                    // displayname 和 file
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                    messageContent.appendChild(messageMiniProgram(message));
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.MergedMessages) {
-                    console.log('MergedMessages');
-                    // displayname 和 file
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    if (message.is_chatroom && !message.is_send) {
-                        messageContent.appendChild(displayNameBox(message));
-                    }
-                    messageContent.appendChild(messageMergeCard(message));
-                    // messageContent.appendChild(messageMergeModal(message, messageContent));
-                    messageContent.insertBefore(messageMergeModal(message, messageContent, 1), messageContent.firstChild);
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.Quote) {
-                    console.log('Quote');
-                    // displayname 和 file
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    if (message.is_chatroom && !message.is_send) {
-                        messageContent.appendChild(displayNameBox(message));
-                    }
-                    messageContent.appendChild(messageBubble(message, side));
-                    if (message.quote_text) {
-                        messageContent.appendChild(messageElementReferText(message, side));
-                    }
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                }  else if (message.type == MessageType.WeChatVideo) {
-                    console.log('WeChatVideo');
-                    // displayname 和 file
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    if (message.is_chatroom && !message.is_send) {
-                        messageContent.appendChild(displayNameBox(message));
-                    }
-                    messageContent.appendChild(messageVideoNumber(message));
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == 49 && is_valid_data(message.server_id, message.token)) {
-                    if (message.sub_type == 57) {
-                        // displayname 和 bubble 和 refer
-                        messageContent.className = `content-wrapper content-wrapper-${side}`;
-                        if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                        messageContent.appendChild(messageBubble(message, side));
-                        if (message.refer_text) {
-                            messageContent.appendChild(messageElementReferText(message, side));
-                        }
-
-                    }  else if (message.sub_type == 3 || message.sub_type == 76) {
-                        // music share
-                        messageContent.className = `content-wrapper content-wrapper-${side}`;
-                        if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                        messageContent.appendChild(messageMusicAudioBox(message));
-                    } else if (message.sub_type == 5) {
-                        // displayname 和 card
-                        messageContent.className = `content-wrapper content-wrapper-${side}`;
-                        if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                        messageContent.appendChild(messageCard(message));
-                    } else if (message.sub_type == 2000) {
-                        // displayname 和 messageTransfer
-                        messageContent.className = `content-wrapper content-wrapper-${side}`;
-                        if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                        messageContent.appendChild(messageTransfer(message));
-                    } else if (message.sub_type == 19) {
-                        // displayname 和 messageMergeCard
-                        messageContent.className = `content-wrapper content-wrapper-${side}`;
-                        if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                        messageContent.appendChild(messageMergeCard(message));
-                        // messageContent.appendChild(messageMergeModal(message, messageContent));
-                        messageContent.insertBefore(messageMergeModal(message, messageContent, 1), messageContent.firstChild);
-
-                    } else if (message.sub_type == 33 || message.sub_type == 36) {
-                        // 小程序
-                        messageContent.className = `content-wrapper content-wrapper-${side}`;
-                        if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                        messageContent.appendChild(messageMiniProgram(message));
-                    } else if (message.sub_type == 51) {
-                        // 视频号
-                        messageContent.className = `content-wrapper content-wrapper-${side}`;
-                        if (message.is_chatroom && !message.is_send) {
-                            messageContent.appendChild(displayNameBox(message));
-                        }
-                        messageContent.appendChild(messageVideoNumber(message));
-                    }
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == 34 && is_valid_data(message.server_id, message.token)) {
-                    // displayname 和 转的文字 和 audio
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    
-                    messageContent.appendChild(messageAudioBox(message));
-                    if (message.voice_to_text) {
-                        messageContent.appendChild(messageVoiceToTextBubble(message, side));
-                    }
-
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.Voip && is_valid_data(message.server_id, message.token)) {
-                    // displayname 和 转的文字 和 audio
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    
-                    messageContent.appendChild(messageVideoAudioCall(message, side));
-
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == MessageType.BusinessCard) {
-                    // 个人名片
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    
-                    messageContent.appendChild(MessageType.is_open_im?openIMCard(message):personalCard(message));
-
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                } else if (message.type == 48 && is_valid_data(message.server_id, message.token)) {
-                    // 定位
-                    messageContent.className = `content-wrapper content-wrapper-${side}`;
-                    
-                    messageContent.appendChild(messageLocation(message, newMapID));
-
-                    // 整合
-                    messageElement.className = `item item-${side}`;
-                    messageElement.appendChild(message.is_send ? messageContent : avatarTag);
-                    messageElement.appendChild(message.is_send ? avatarTag : messageContent);
-                }
+                const params = {
+                    message,           // 消息对象
+                    side,              // 消息显示位置（左/右）
+                    messageContent,    // 消息内容容器
+                    messageElement,    // 消息元素
+                    avatarTag,         // 头像标签
+                };
+                processMessage(params);
                 OnePageMessage.appendChild(messageElement);
 
             }
@@ -4949,7 +4944,7 @@
         var lastTimeStamp = 0;
 
         // search init
-        
+
         var idx = lunr(function () {
             this.use(lunr.zh);
             this.ref('server_id')

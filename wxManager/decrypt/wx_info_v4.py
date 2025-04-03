@@ -430,11 +430,6 @@ def get_nickname(pid):
                     for string in match.strings:
                         instance = string.instances[0]
                         offset, content = instance.offset, instance.matched_data
-                        # print(
-                        #     f"匹配字符串: {identifier} 内容:  偏移: {offset} 在地址: {hex(base_address + offset + 0x10)}")
-                        # print(string)
-                        with open('a.bin','wb') as f:
-                            f.write(target_data)
                         phone_addr = offset + 0x10
                         phone = read_string(target_data, phone_addr, 11)
 

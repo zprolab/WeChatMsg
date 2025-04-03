@@ -133,7 +133,6 @@ class HtmlExporter(ExporterBase):
                 self.update_progress_callback(index / total_steps)
             type_ = message.type
             if not self.is_selected(message):
-                msg_index -= 1
                 continue
             server_id = message.server_id
             if type_ == MessageType.Image:
@@ -201,7 +200,6 @@ class HtmlExporter(ExporterBase):
                 VideoNumberIndex.append(msg_index)
             elif type_ == MessageType.MergedMessages:
                 parser_merged(message)
-
             msg_index += 1
             is_select = True
             html_json.append(message.to_json())

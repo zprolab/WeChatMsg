@@ -24,12 +24,14 @@ class DataBaseBase:
 
     def init_database(self, db_dir=''):
         self.db_dir = db_dir
+        if not os.path.exists(db_dir):
+            return False
         db_path = os.path.join(db_dir, self.db_file_name)
         if not os.path.exists(db_path) and self.db_file_name != 'Audio2Text.db':
             return False
         db_file_name = self.db_file_name
-        self.db_file_name = []
         if self.is_series:
+            self.db_file_name = []
             self.DB = []
             self.cursor = []
             for i in range(100):

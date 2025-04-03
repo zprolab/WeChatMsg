@@ -210,7 +210,8 @@ class DataBaseV3(DataBaseInterface):
         flag &= self.open_media_db.init_database(db_dir)
         flag &= self.open_msg_db.init_database(db_dir)
         flag &= self.audio2text_db.init_database(db_dir)
-        self.audio2text_db.create()  # 初始化数据转文字数据库
+        if flag:
+            self.audio2text_db.create()  # 初始化语音转文字数据库
         return flag
         # self.sns_db.init_database(db_dir)
 

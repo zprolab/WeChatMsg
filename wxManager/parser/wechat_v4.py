@@ -42,9 +42,12 @@ source,message_content,compress_content"
 
 
 def decompress(data):
-    dctx = zstd.ZstdDecompressor()  # 创建解压对象
-    x = dctx.decompress(data).strip(b'\x00').strip()
-    return x.decode('utf-8').strip()
+    try:
+        dctx = zstd.ZstdDecompressor()  # 创建解压对象
+        x = dctx.decompress(data).strip(b'\x00').strip()
+        return x.decode('utf-8').strip()
+    except:
+        return ''
 
 
 class LimitedDict:
@@ -255,8 +258,8 @@ class ImageMessageFactory(MessageFactory, Singleton):
             # 转换为 JSON 格式
             packed_info_data = MessageToDict(packed_info_data_proto)
             image_info = packed_info_data.get('imageInfo', {})
-            width = image_info.get('width',0)
-            height = image_info.get('height',0)
+            width = image_info.get('width', 0)
+            height = image_info.get('height', 0)
             filename = image_info.get('filename', '').strip().strip('"').strip()
         except:
             pass
@@ -344,6 +347,19 @@ class AudioMessageFactory(MessageFactory, Singleton):
 class VideoMessageFactory(MessageFactory, Singleton):
     def create(self, message, username, manager):
         is_sender, wxid, message_content = self.common_attribute(message, username, manager)
+        filename = ''
+        try:
+            # 2025年3月微信4.0.3正式版修改了img命名方式才有了这个东西
+            packed_info_data_proto = packed_info_data_img2_pb2.PackedInfoDataImg2()
+            packed_info_data_proto.ParseFromString(message[14])
+            # 转换为 JSON 格式
+            packed_info_data = MessageToDict(packed_info_data_proto)
+            image_info = packed_info_data.get('videoInfo', {})
+            width = image_info.get('width', 0)
+            height = image_info.get('height', 0)
+            filename = image_info.get('filename', '').strip().strip('"').strip()
+        except:
+            pass
         msg = VideoMessage(
             local_id=message[0],
             server_id=message[1],
@@ -361,7 +377,7 @@ class VideoMessageFactory(MessageFactory, Singleton):
             md5='',
             path='',
             file_size=0,
-            file_name='',
+            file_name=filename,
             file_type='mp4',
             thumb_path='',
             duration=0,
@@ -372,12 +388,25 @@ class VideoMessageFactory(MessageFactory, Singleton):
         msg.file_size = video_dic.get('size', 0)
         msg.md5 = video_dic.get('md5', '')
         msg.raw_md5 = video_dic.get('rawmd5', '')
-        msg.path = manager.hardlink_db.get_video(msg.raw_md5, False)
-        msg.thumb_path = manager.hardlink_db.get_video(msg.raw_md5, True)
-        if not msg.path:
-            msg.path = manager.hardlink_db.get_video(msg.md5, False)
-            msg.thumb_path = manager.hardlink_db.get_video(msg.md5, True)
-        # logger.error(f'{msg.path} {msg.thumb_path}')
+        month = msg.str_time[:7]  # 2025-01
+        if filename:
+            # 微信4.0.3正式版增加
+            video_dir = os.path.join('msg', 'video', month)
+            video_path = os.path.join(video_dir, f'{filename}_raw.mp4')
+            if os.path.exists(os.path.join(Me().wx_dir, video_path)):
+                msg.path = video_path
+                msg.thumb_path = os.path.join(video_dir, f'{filename}.jpg')
+            else:
+                msg.path = os.path.join(video_dir, f'{filename}.mp4')
+                msg.thumb_path = os.path.join(video_dir, f'{filename}.jpg')
+        else:
+            msg.path = manager.hardlink_db.get_video(msg.raw_md5, False)
+            msg.thumb_path = manager.hardlink_db.get_video(msg.raw_md5, True)
+            if not msg.path:
+                msg.path = manager.hardlink_db.get_video(msg.md5, False)
+                msg.thumb_path = manager.hardlink_db.get_video(msg.md5, True)
+            # logger.error(f'{msg.path} {msg.thumb_path}')
+
         self.add_message(msg)
         return msg
 
@@ -847,7 +876,19 @@ class FileMessageFactory(MessageFactory, Singleton):
         is_sender, wxid, message_content = self.common_attribute(message, username, manager)
         info = parser_file(message_content)
         md5 = info.get('md5', '')
-        file_path = manager.get_file(md5)
+        filename = info.get('filename','')
+        if not filename:
+            try:
+                # 2025年3月微信4.0.3正式版修改了img命名方式才有了这个东西
+                packed_info_data_proto = packed_info_data_img2_pb2.PackedInfoDataImg2()
+                packed_info_data_proto.ParseFromString(message[14])
+                # 转换为 JSON 格式
+                packed_info_data = MessageToDict(packed_info_data_proto)
+                image_info = packed_info_data.get('fileInfo', {})
+                file_info = image_info.get('fileInfo', {})
+                filename = file_info.get('filename', '').strip()
+            except:
+                pass
         msg = FileMessage(
             local_id=message[0],
             server_id=message[1],
@@ -862,12 +903,21 @@ class FileMessageFactory(MessageFactory, Singleton):
             avatar_src=self.contacts[wxid].small_head_img_url,
             status=message[7],
             xml_content=message_content,
-            path=file_path,
+            path='',
             md5=md5,
             file_type=info.get('file_type', ''),
             file_name=info.get('file_name', ''),
             file_size=info.get('file_size', 0)
         )
+        # file_path = manager.get_file(md5)
+        if filename:
+            month = msg.str_time[:7]  # 2025-01
+            # 微信4.0.3正式版增加
+            video_dir = os.path.join('msg', 'file', month)
+            file_path = os.path.join(video_dir, f'{filename}')
+            msg.path = file_path
+        else:
+            msg.path = manager.get_file(md5)
         self.add_message(msg)
         return msg
 
