@@ -188,8 +188,6 @@ class ExcelExporter(ExporterBase):
                 logger.error(traceback.format_exc())
                 continue
             type_ = message.type
-            timestamp = message.timestamp
-            msgSvrId = message.server_id
             if type_ == MessageType.Image:
                 message.set_file_name()
                 image_index[message.server_id] = self.row
@@ -256,6 +254,8 @@ class ExcelExporter(ExporterBase):
         if MessageType.Image in self.message_types:
             for index, message in enumerate(messages):
                 if message.type == MessageType.Image:
+                    if not self.is_selected(message):
+                        continue
                     row = image_index[message.server_id]
                     img_path = find_image_with_known_extensions(os.path.join(self.origin_path, message.path))
                     if not img_path:

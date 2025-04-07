@@ -21,6 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, date
 from typing import Tuple
 
+from wxManager import MessageType
 from wxManager.merge import increase_data, increase_update_data
 from wxManager.log import logger
 from wxManager.model import DataBaseBase
@@ -59,6 +60,45 @@ def convert_to_timestamp(time_range) -> Tuple[int, int]:
         return 0, 0
     else:
         return convert_to_timestamp_(time_range[0]), convert_to_timestamp_(time_range[1])
+
+
+def get_local_type(type_: MessageType):
+    type_name_dict = {
+        MessageType.Text: (1, 0),
+        MessageType.Image: (3, 0),
+        MessageType.Audio: (34, 0),
+        MessageType.Video: (43, 0),
+        MessageType.Emoji: (47, 0),
+        MessageType.BusinessCard: (42, 0),
+        MessageType.OpenIMBCard: (66, 0),
+        MessageType.Position: (48, 0),
+        MessageType.FavNote: (49, 40),
+        MessageType.FavNote: (49, 24),
+        (49, 53): "接龙",
+        MessageType.File: (49, 0),
+        MessageType.Text2: (49, 1),
+        MessageType.Music: (49, 3),
+        MessageType.Music: (49, 76),
+        MessageType.LinkMessage: (49, 5),
+        MessageType.File: (49, 6),
+        (49, 8): "用户上传的GIF表情",
+        MessageType.System: (49, 17),  # 发起了位置共享
+        MessageType.MergedMessages: (49, 19),
+        MessageType.Applet: (49, 33),
+        MessageType.Applet2: (49, 36),
+        MessageType.WeChatVideo: (49, 51),
+        (49, 57): MessageType.Quote,
+        (49, 63): "视频号直播或直播回放等",
+        (49, 87): "群公告",
+        (49, 88): "视频号直播或直播回放等",
+        (49, 2000): MessageType.Transfer,
+        (49, 2003): "赠送红包封面",
+        (50, 0): MessageType.Voip,
+        (10000, 0): MessageType.System,
+        (10000, 4): MessageType.Pat,
+        (10000, 8000): MessageType.System
+    }
+    return type_name_dict.get(type_, (0, 0))
 
 
 class OpenIMMsgDB(DataBaseBase):
@@ -133,6 +173,29 @@ class OpenIMMsgDB(DataBaseBase):
                 return result
 
         return None
+
+    def _get_messages_by_type(self, cursor, username: str, type_: MessageType,
+                              time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
+        if time_range:
+            start_time, end_time = convert_to_timestamp(time_range)
+        local_type, sub_type = get_local_type(type_)
+        sql = f'''
+            select localId,TalkerId,Type,SubType,IsSender,CreateTime,Status,StrContent,strftime('%Y-%m-%d %H:%M:%S',CreateTime,'unixepoch','localtime') as StrTime,MsgSvrID,BytesExtra,CompressContent,DisplayContent
+            from MSG
+            where StrTalker=? and Type=? and SubType = ?
+            {'AND CreateTime>' + str(start_time) + ' AND CreateTime<' + str(end_time) if time_range else ''}
+            order by CreateTime
+        '''
+        cursor.execute(sql, [username, local_type, sub_type])
+        result = cursor.fetchall()
+        if result:
+            return result
+        else:
+            return None
+
+    def get_messages_by_type(self, username: str, type_: MessageType,
+                             time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
+        return self.get_messages_by_type(self.DB.cursor, username, type_, time_range)
 
     def merge(self, db_path):
         if not (os.path.exists(db_path) or os.path.isfile(db_path)):

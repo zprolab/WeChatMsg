@@ -8,79 +8,36 @@ from datetime import date
 from typing import Tuple
 from concurrent.futures import ThreadPoolExecutor
 
+from wxManager import MessageType
 from wxManager.merge import increase_data
-from wxManager.db_v3.msg import convert_to_timestamp
+from wxManager.db_v3.msg import convert_to_timestamp,get_local_type
 from wxManager.model import DataBaseBase
 
 
 class PublicMsg(DataBaseBase):
 
-    def get_messages(
-            self,
-            username_: str,
-            time_range: Tuple[int | float | str | date, int | float | str | date] = None,
-    ):
-        """
-        return list
-            a[0]: localId,
-            a[1]: talkerId, （和strtalker对应的，不是群聊信息发送人）
-            a[2]: type,
-            a[3]: subType,
-            a[4]: is_sender,
-            a[5]: timestamp,
-            a[6]: status, （没啥用）
-            a[7]: str_content,
-            a[8]: str_time, （格式化的时间）
-            a[9]: msgSvrId,
-            a[10]: BytesExtra,
-            a[11]: CompressContent,
-            a[12]: DisplayContent,
-            a[13]: 联系人的类（如果是群聊就有，不是的话没有这个字段）
-        """
-        if not self.open_flag:
-            return []
+    def _get_messages_by_type(self, cursor, username: str, type_: MessageType,
+                              time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
         if time_range:
             start_time, end_time = convert_to_timestamp(time_range)
+        local_type, sub_type = get_local_type(type_)
         sql = f'''
             select localId,TalkerId,Type,SubType,IsSender,CreateTime,Status,StrContent,strftime('%Y-%m-%d %H:%M:%S',CreateTime,'unixepoch','localtime') as StrTime,MsgSvrID,BytesExtra,CompressContent,DisplayContent
-            from PublicMsg
-            where StrTalker=?
+            from MSG
+            where StrTalker=? and Type=? and SubType = ?
             {'AND CreateTime>' + str(start_time) + ' AND CreateTime<' + str(end_time) if time_range else ''}
             order by CreateTime
         '''
-        try:
-            lock.acquire(True)
-            self.cursor.execute(sql, [username_])
-            result = self.cursor.fetchall()
-        finally:
-            lock.release()
-        return result
+        cursor.execute(sql, [username, local_type, sub_type])
+        result = cursor.fetchall()
+        if result:
+            return result
+        else:
+            return None
 
-    def get_messages_by_type(
-            self,
-            username_: str,
-            type_,
-            sub_type=None,
-            time_range: Tuple[int | float | str | date, int | float | str | date] = None,
-    ):
-        if not self.open_flag:
-            return []
-        if time_range:
-            start_time, end_time = convert_to_timestamp(time_range)
-        sql = f'''
-            select localId,TalkerId,Type,SubType,IsSender,CreateTime,Status,StrContent,strftime('%Y-%m-%d %H:%M:%S',CreateTime,'unixepoch','localtime') as StrTime,MsgSvrID,BytesExtra,CompressContent,DisplayContent
-            from PublicMsg
-            where StrTalker=? AND Type=? {'AND SubType=' + str(sub_type) if sub_type else ''}
-            {'AND CreateTime>' + str(start_time) + ' AND CreateTime<' + str(end_time) if time_range else ''}
-            order by CreateTime
-        '''
-        try:
-            lock.acquire(True)
-            self.cursor.execute(sql, [username_, type_])
-            result = self.cursor.fetchall()
-        finally:
-            lock.release()
-        return result
+    def get_messages_by_type(self, username: str, type_: MessageType,
+                             time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
+        return self.get_messages_by_type(self.DB.cursor, username, type_, time_range)
 
     def get_sport_score_by_name(self, username,
                                 time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
@@ -126,7 +83,7 @@ class PublicMsg(DataBaseBase):
 
     def get_messages_by_username(self, username: str,
                                  time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
-        return self._get_messages_by_username(self.DB.cursor(),username,time_range)
+        return self._get_messages_by_username(self.DB.cursor(), username, time_range)
 
     def get_message_by_server_id(self, username, server_id):
         """

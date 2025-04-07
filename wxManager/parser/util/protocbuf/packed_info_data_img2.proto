@@ -3,9 +3,11 @@ syntax = "proto3";
 message PackedInfoDataImg2 {
   int32 field1 = 1;
   int32 field2 = 2;
-  ImageInfo imageInfo = 3;
-  VideoInfo videoInfo = 4;
-  FileInfo fileInfo = 7;
+  ImageInfo imageInfo = 3;  // 图片
+  VideoInfo videoInfo = 4;  // 视频
+  AudioInfo audioInfo = 5;  // 语音
+  FileInfo fileInfo = 7;    // 文件
+  MergeInfo mergeInfo = 9;  // 合并转发的聊天记录
 }
 
 message ImageInfo {
@@ -35,4 +37,13 @@ message FileSubMessage2 {
   string field1 = 1;
   string field2 = 2;
   string field3 = 3;
+}
+
+message MergeInfo {
+  string dir = 1;
+}
+
+message AudioInfo {
+  uint32 field1 = 1;
+  string audioTxt = 2; // 语音转文字结果
 }

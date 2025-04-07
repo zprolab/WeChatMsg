@@ -9,6 +9,7 @@
 @Description : 
 """
 import html
+import re
 import traceback
 from datetime import datetime, timedelta
 import xml.etree.ElementTree as ET
@@ -206,13 +207,27 @@ def parser_business(xml_content):
         return result
 
 
+def replace_entity(match):
+    # 获取匹配的数字
+    return ''
+
+
+def process_xml(xml_string):
+    # 使用正则表达式替换所有十进制转义字符
+    processed_xml = re.sub(r'&#(\d+);', replace_entity, xml_string)
+    return processed_xml
+
+
 def parser_record_item(recorditem, output_dir, wxid, msg_time, level=0):
     xml_string = recorditem
     if isinstance(xml_string, dict):
         recorditem_dic = xml_string
     else:
-        recorditem_dic = xmltodict.parse(xml_string)
-
+        try:
+            recorditem_dic = xmltodict.parse(xml_string)
+        except:
+            xml_string = process_xml(xml_string)
+            recorditem_dic = xmltodict.parse(xml_string)
     # logger.error(recorditem_dic)
     datalist = recorditem_dic.get('recordinfo', {}).get('datalist', {})
     count = datalist.get('@count', 0)
@@ -522,7 +537,7 @@ def parser_record_item(recorditem, output_dir, wxid, msg_time, level=0):
     return result
 
 
-def parser_merged_messages(xml, output_dir, wxid, msg_time, level=0):
+def parser_merged_messages(xml: str, output_dir, wxid, msg_time, level=0):
     try:
         try:
             data_dic = xmltodict.parse(xml).get('msg', {})
@@ -543,8 +558,8 @@ def parser_merged_messages(xml, output_dir, wxid, msg_time, level=0):
         }
     except:
         logger.error(xml)
-        logger.error(new_xml1)
-        logger.error(new_xml2)
+        # logger.error(new_xml1)
+        # logger.error(new_xml2)
         logger.error(traceback.format_exc())
         # raise ValueError('合并转发的消息解析失败')
         return {

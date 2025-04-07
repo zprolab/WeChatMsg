@@ -190,7 +190,7 @@ class Singleton:
             self.contacts[wxid] = manager.get_contact_by_username(wxid)
         if isinstance(message[12], bytes):
             message_content = decompress(message[12])
-            message_content = message_content.replace('&#x01;', '').replace('&#x20;', ' ')
+            message_content = message_content.replace('&amp#x01;', '').replace('&#x20;', ' ')
             # logger.error(message_content)
         else:
             message_content = message[12]
@@ -198,7 +198,9 @@ class Singleton:
             2] != MessageType.Pat:
             # 群聊文字消息格式：<wxid>:<content>
             message_content = ':'.join(message_content.split(':')[1:]).strip()
-
+        if message_content and message_content.startswith(username):
+            # md 微信不知道在搞什么，弄一些乱七八糟的东西 4.0.3.22
+            message_content = message_content.strip(f'{username}:').replace('<?xml version="1.0"?>', '')
         return is_sender, wxid, message_content
 
 
@@ -876,7 +878,7 @@ class FileMessageFactory(MessageFactory, Singleton):
         is_sender, wxid, message_content = self.common_attribute(message, username, manager)
         info = parser_file(message_content)
         md5 = info.get('md5', '')
-        filename = info.get('filename','')
+        filename = info.get('filename', '')
         if not filename:
             try:
                 # 2025年3月微信4.0.3正式版修改了img命名方式才有了这个东西

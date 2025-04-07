@@ -26,7 +26,7 @@ def parser_emoji(xml_content):
         'height': 0,
         'desc': ''
     }
-    xml_content = xml_content.strip()
+    xml_content = xml_content.strip().replace('&', '&amp;')
     try:
         xml_dict = xmltodict.parse(xml_content)
         emoji_dic = xml_dict.get('msg', {}).get('emoji', {})
