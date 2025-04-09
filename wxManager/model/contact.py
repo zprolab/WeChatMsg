@@ -157,7 +157,7 @@ class Me:
         self.small_head_img_url = ''
         self.nickname = self.name
         self.remark = self.nickname
-        self.xor_key = -1
+        self.xor_key = 0
 
     def to_json(self) -> dict:
         return {

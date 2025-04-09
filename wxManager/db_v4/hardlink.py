@@ -182,6 +182,10 @@ class HardLinkDB(DataBaseBase):
         if os.path.exists(os.path.join(Me().wx_dir, path1)):
             return path1
         else:
+            data_image = f'{message.file_name}_h.dat' if message.file_name else f'{local_id}_{create_time}_h.dat'
+            path1 = os.path.join(image_root_path, dir1, dir2, dir0, data_image)
+            if os.path.exists(os.path.join(Me().wx_dir, path1)):
+                return path1
             data_image = f'{message.file_name}.dat' if message.file_name else f'{local_id}_{create_time}.dat'
             path1 = os.path.join(image_root_path, dir1, dir2, dir0, data_image)
             return path1

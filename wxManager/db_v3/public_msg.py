@@ -37,7 +37,7 @@ class PublicMsg(DataBaseBase):
 
     def get_messages_by_type(self, username: str, type_: MessageType,
                              time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
-        return self.get_messages_by_type(self.DB.cursor, username, type_, time_range)
+        return self._get_messages_by_type(self.DB.cursor, username, type_, time_range)
 
     def get_sport_score_by_name(self, username,
                                 time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
@@ -110,7 +110,7 @@ class PublicMsg(DataBaseBase):
         @param username_:
         @return:
         """
-        sql = f'''SELECT DISTINCT strftime('%Y-%m-%d',create_time,'unixepoch','localtime') AS date
+        sql = f'''SELECT DISTINCT strftime('%Y-%m-%d',CreateTime,'unixepoch','localtime') AS date
             from PublicMsg
             where StrTalker=?
             ORDER BY date desc;

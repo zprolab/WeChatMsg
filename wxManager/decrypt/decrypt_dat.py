@@ -121,30 +121,49 @@ def decode_dat(xor_key: int, file_path, out_path, dst_name='') -> str | bytes:
 
 
 def get_decode_code_v4(wx_dir):
+    """
+    从微信文件夹里找到异或密钥，原理详见：https://blog.lc044.love/post/16
+    :param wx_dir:
+    :return:
+    """
     cache_dir = os.path.join(wx_dir, 'cache')
     if not os.path.isdir(wx_dir) or not os.path.exists(cache_dir):
         raise ValueError(f'微信路径输入错误，请检查：{wx_dir}')
-    ok_flag = False
-    for root, dirs, files in os.walk(cache_dir):
-        if ok_flag:
-            break
-        for file in files:
-            if file.endswith(".dat"):
-                # 构造源文件和目标文件的完整路径
-                src_file_path = os.path.join(root, file)
-                with open(src_file_path, 'rb') as f:
-                    data = f.read()
-                    if not is_v4_image(data):
-                        continue
-                    file_tail = data[-2:]
 
-                    jpg_known_tail = b'\xff\xd9'
-                    # 推导出密钥
-                    xor_key = [c ^ p for c, p in zip(file_tail, jpg_known_tail)]
-                    if len(set(xor_key)) == 1:
-                        print(f'[*] 找到异或密钥: 0x{xor_key[0]:x}')
-                        return xor_key[0]
-    return -1
+    def find_xor_key(dir0):
+        ok_flag = False
+        for root, dirs, files in os.walk(dir0):
+            if ok_flag:
+                break
+            for file in files:
+                if file.endswith("_t.dat"):
+                    # 构造源文件和目标文件的完整路径
+                    src_file_path = os.path.join(root, file)
+                    with open(src_file_path, 'rb') as f:
+                        data = f.read()
+                        if not is_v4_image(data):
+                            continue
+                        file_tail = data[-2:]
+
+                        jpg_known_tail = b'\xff\xd9'
+                        # 推导出密钥
+                        xor_key = [c ^ p for c, p in zip(file_tail, jpg_known_tail)]
+                        if len(set(xor_key)) == 1:
+                            print(f'[*] 找到异或密钥: 0x{xor_key[0]:x}')
+                            return xor_key[0]
+        return -1
+
+    xor_key_ = find_xor_key(cache_dir)
+    if xor_key_ != -1:
+        return xor_key_
+    else:
+        dirs = ['temp', 'msg']
+        for dir_name in dirs:
+            cache_dir = os.path.join(wx_dir, dir_name)
+            xor_key_ = find_xor_key(cache_dir)
+            if xor_key_ != -1:
+                return xor_key_
+    return 0
 
 
 def get_image_type(data: bytes) -> str:
