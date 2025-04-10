@@ -9,6 +9,7 @@
 @Description : 
 """
 import base64
+import re
 import traceback
 
 import xmltodict
@@ -26,9 +27,23 @@ def parser_emoji(xml_content):
         'height': 0,
         'desc': ''
     }
+
+    def extract_msg(text):
+        # 使用正则表达式匹配第一个 <msg> 标签及其内容
+        pattern = r'(<msg>.*?</msg>)'
+        match = re.search(pattern, text)
+        return f'<msg>{match.group(0)}</msg>' if match else ''
+
     xml_content = xml_content.strip().replace('&', '&amp;')
     try:
         xml_dict = xmltodict.parse(xml_content)
+    except:
+        try:
+            xml_content = extract_msg(xml_content)
+            xml_dict = xmltodict.parse(xml_content)
+        except:
+            pass
+    try:
         emoji_dic = xml_dict.get('msg', {}).get('emoji', {})
         if '@androidmd5' in emoji_dic:
             md5 = emoji_dic.get('@androidmd5', '')

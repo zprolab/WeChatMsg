@@ -194,7 +194,7 @@ class Msg(DataBaseBase):
         @param username_:
         @return:
         """
-        sql = f'''SELECT DISTINCT strftime('%Y-%m-%d',create_time,'unixepoch','localtime') AS date
+        sql = f'''SELECT DISTINCT strftime('%Y-%m-%d',CreateTime,'unixepoch','localtime') AS date
             from MSG
             where StrTalker=?
             ORDER BY date desc;

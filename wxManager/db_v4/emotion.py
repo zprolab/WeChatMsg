@@ -51,5 +51,6 @@ class EmotionDB(DataBaseBase):
             print(f"数据库操作错误: {traceback.format_exc()}")
             self.DB.rollback()
 
+
 if __name__ == '__main__':
     pass

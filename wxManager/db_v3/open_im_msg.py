@@ -195,7 +195,30 @@ class OpenIMMsgDB(DataBaseBase):
 
     def get_messages_by_type(self, username: str, type_: MessageType,
                              time_range: Tuple[int | float | str | date, int | float | str | date] = None, ):
-        return self.get_messages_by_type(self.DB.cursor, username, type_, time_range)
+        return self._get_messages_by_type(self.DB.cursor, username, type_, time_range)
+
+    def _get_messages_calendar(self, cursor, username):
+        """
+        获取某个人的聊天日历列表
+        @param username_:
+        @return:
+        """
+        sql = f'''SELECT DISTINCT strftime('%Y-%m-%d',CreateTime,'unixepoch','localtime') AS date
+            from PublicMsg
+            where StrTalker=?
+            ORDER BY date desc;
+        '''
+        cursor.execute(sql, [username])
+        result = cursor.fetchall()
+        return (data[0] for data in result)
+
+    def get_messages_calendar(self, username):
+        res = []
+        r1 = self._get_messages_calendar(self.DB.cursor(), username)
+        if r1:
+            res.extend(r1)
+        res.sort()
+        return res
 
     def merge(self, db_path):
         if not (os.path.exists(db_path) or os.path.isfile(db_path)):

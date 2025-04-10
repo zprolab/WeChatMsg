@@ -17,7 +17,7 @@ from wxManager.log import logger
 def get_image_type(header):
     # 根据文件头判断图片类型
     if header.startswith(b'\xFF\xD8'):
-        return 'jepg'
+        return 'jpeg'
     elif header.startswith(b'\x89PNG'):
         return 'png'
     elif header[:6] in (b'GIF87a', b'GIF89a'):
