@@ -86,7 +86,7 @@ You are a helpful assistant.<|im_end|>
 
 ## 加载tokenizer和半精度模型
 
-模型以半精度形式加载，如果你的显卡比较新的话，可以用`torch.bfolat`形式加载。对于自定义的模型一定要指定`trust_remote_code`参数为`True`。
+模型以半精度形式加载，如果你的显卡比较新的话，可以用`torch.bfloat`形式加载。对于自定义的模型一定要指定`trust_remote_code`参数为`True`。
 
 ```python
 tokenizer = AutoTokenizer.from_pretrained('./qwen2-0.5b/qwen/Qwen2-0___5B-Instruct/', use_fast=False, trust_remote_code=True)
