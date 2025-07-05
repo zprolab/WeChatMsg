@@ -1,3 +1,4 @@
+<!--
 ## 现已支持微信4.0，[点击查看详细设计文档](https://blog.lc044.love/post/13)
 
 <h1 align="center">我的数据我做主</h1>
@@ -48,6 +49,8 @@
 ## 3.0 全面来袭
 
 ### 全面适配微信4.0 [点击查看详细设计文档](https://blog.lc044.love/post/13)
+-->
+# MemoTrace(WeChatMsg) forked
 
 ![数据库架构设计图](./doc/images/数据库架构设计图.png)
 
@@ -63,10 +66,12 @@
 
 
 ## 🍉功能
+<!--
 - [![](https://img.shields.io/badge/MemoTrace-官网-blue)](https://memotrace.cn/) 
 [![](https://img.shields.io/badge/GitHub-black.svg)](https://github.com/LC044/WeChatMsg)
 [![](https://img.shields.io/badge/Gitee-red.svg)](https://gitee.com/lc044/WeChatMsg)
 [![](https://img.shields.io/badge/Download-yellow.svg)](https://memotrace.cn/)
+-->
 - 🔒️🔑🔓️Windows本地微信数据库（支持微信4.0）
 - 还原微信聊天界面
     - 🗨文本✅
@@ -90,7 +95,7 @@
 ## 2024年度报告
 
 ### 预览
-
+<!--
 [个人年度报告在线预览](https://memotrace.cn/2024/single/)
 
 [双人年度报告在线预览](https://memotrace.cn/2024Report/)
@@ -98,6 +103,7 @@
 手机可以扫码观看
 
 <img src="/doc/images/qrcode0.png" height="300px"/>
+-->
 
 ![](/doc/images/demo1.gif)
 
@@ -107,16 +113,18 @@
 
 # ⌛使用
 
-下载地址：[https://memotrace.cn/](https://memotrace.cn/)
+<!-- 下载地址：[https://memotrace.cn/](https://memotrace.cn/) 
 
 下载打包好的exe可执行文件，双击即可运行
 
 **⚠️注意：若出现闪退情况请右击选择用管理员身份运行exe程序，该程序不存在任何病毒，若杀毒软件提示有风险选择略过即可，key为none可重启电脑**
 
+-->
+
 ## 源码运行
 
 [使用示例](./example/README.md)
-[详见开发者手册](./doc/开发者手册.md)
+<!-- [详见开发者手册](./doc/开发者手册.md) -->
 
 [AI聊天](./MemoAI/readme.md)
 
@@ -134,6 +142,7 @@
   * 换电脑
 如果您在运行可执行程序的时候出现闪退的现象，请右击软件使用管理员权限运行。
 
+<!--
 [查看详细教程](https://memotrace.cn/doc/)
 
 # 🏆致谢
@@ -145,6 +154,7 @@
 * 得力小助手:[ChatGPT](https://chat.openai.com/)
 
 </details>
+-->
 
 ---
 > \[!IMPORTANT]
@@ -155,22 +165,24 @@
 > 如果该项目侵犯了您或您产品的任何权益，请联系我删除<br>
 > 软件贩子勿扰，违规违法勿扰，二次开发请务必遵守开源协议
 
-[![Star History Chart](https://api.star-history.com/svg?repos=LC044/WeChatMsg&type=Date)](https://star-history.com/?utm_source=bestxtools.com#LC044/WeChatMsg&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=zprolab/WeChatMsg&type=Date)](https://star-history.com/?utm_source=bestxtools.com#zprolab/WeChatMsg&Date)
 
 # 🤝贡献者
 
-<a href="https://github.com/lc044/wechatmsg/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=lc044/wechatmsg" />
+<a href="https://github.com/zprolab/wechatmsg/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=zprolab/wechatmsg" />
 </a>
 
 ## 赞助者名单
 
 感谢以下赞助者的慷慨支持：
 
+<!--
 - [STDquantum](https://github.com/STDquantum)
 - [xuanli](https://github.com/xuanli)
 - [无名路人](https://github.com/wumingluren)
 - [时鹏亮](https://shipengliang.com)
+-->
 
 # 🎄温馨提示
 
@@ -182,11 +194,12 @@
 * 觉得UI不够美观
 * 等其他给您造成困扰的地方
 
-请提起[issue](https://github.com/LC044/WeChatMsg/issues)，我将尽快为您解决问题
+请提起[issue](https://github.com/zprolab/WeChatMsg/issues)，我将尽快为您解决问题
 
-如果您是一名开发者，有新的想法或建议，欢迎[fork](https://github.com/LC044/WeChatMsg/forks)
-该项目并发起[PR](https://github.com/LC044/WeChatMsg/pulls)，我将把您的名字写入贡献者名单中
+如果您是一名开发者，有新的想法或建议，欢迎[fork](https://github.com/zprolab/WeChatMsg/forks)
+该项目并发起[PR](https://github.com/zprolab/WeChatMsg/pulls)，我将把您的名字写入贡献者名单中
 
+<!--
 # 联系方式
 
 如果您遇到了问题，可以添加QQ群寻求帮助，由于精力有限，不能回答所有问题，所以还请您仔细阅读文档之后再考虑是否入群
@@ -208,9 +221,10 @@
 <div>
   <img src="doc/images/ai_qq.jpg" height="200">
 </div>
+-->
 
 # License
 
-WeChatMsg is licensed under [MIT](./LICENSE).
+WeChatMsg forked is licensed under [MIT](./LICENSE).
 
 Copyright © 2022-2024 by SiYuan.
